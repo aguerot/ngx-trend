@@ -31,6 +31,7 @@ import { normalizeDataset } from './trend.helpers';
     [attr.stroke-linecap]="strokeLinecap"
     [attr.viewBox]="viewBox"
     [attr.preserveAspectRatio]="preserveAspectRatio"
+    [attr.stroke-dasharray]="strokeDasharray"
   >
     <defs *ngIf="gradient && gradient.length">
       <linearGradient [attr.id]="gradientId"
@@ -105,6 +106,10 @@ export class TrendComponent implements OnChanges {
   @Input() strokeWidth = 1;
   @Input() gradient: string[] = [];
   @Input() preserveAspectRatio: string;
+  @Input() strokeDasharray: string;
+
+  @Input() normalizationFunction: (rawData: number[], minX: number, maxX: number, minY: number, maxY: number) => {x: number, y: number}[];
+
   @ViewChild('pathEl') pathEl: ElementRef;
   gradientTrimmed: any[];
   d: any;
@@ -160,7 +165,9 @@ export class TrendComponent implements OnChanges {
       };
     });
 
-    const normalizedValues = normalizeDataset(plainValues,
+    const normalizationFn = this.normalizationFunction ? this.normalizationFunction : normalizeDataset;
+
+    const normalizedValues = normalizationFn(plainValues,
       this.padding,
       viewBoxWidth - this.padding,
       // NOTE: Because SVGs are indexed from the top left, but most data is
